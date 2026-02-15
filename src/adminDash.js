@@ -6,11 +6,15 @@ import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'fire
 import { db, firebaseConfig } from './firebase'; 
 import { sendTestAssignmentEmail } from './emailService';
 import { 
-  LayoutGrid, Users, FileText, Activity, 
+  LayoutGrid, Users, UserSquare, FileText, Activity, 
   Plus, Trash2, Mail, Shield, User, CheckCircle, X, Calendar,
-  AlertTriangle, ArrowLeft, Shuffle, Send, Briefcase, Headphones, PlayCircle, Mic, Upload
+  AlertTriangle, ArrowLeft, Shuffle, Send, Briefcase, Headphones, 
+  PlayCircle, Mic, Upload, LogOut, Menu 
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+
+// UPDATED: Standardized import name
+import EvaluatorAdminDash from './evaluatorAdminDash'; 
 
 // ==========================================
 // CONSTANTS
@@ -31,8 +35,9 @@ const DEFAULT_SCENARIOS = [
 export default function AdminDashboard({ user, onLogout }) {
   const [currentView, setCurrentView] = useState('dashboard');
   const [detailId, setDetailId] = useState(null);
-  
-  // NEW: State to store the real company name
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true); 
+
+  // State to store the real company name
   const [companyName, setCompanyName] = useState('Loading...');
 
   const navigateTo = (view, id = null) => {
@@ -40,7 +45,7 @@ export default function AdminDashboard({ user, onLogout }) {
     setDetailId(id);
   };
 
-  // NEW: Fetch Company Name from Firestore
+  // Fetch Company Name from Firestore
   useEffect(() => {
     const fetchCompanyName = async () => {
       if (user?.companyId) {
@@ -49,7 +54,6 @@ export default function AdminDashboard({ user, onLogout }) {
           const docSnap = await getDoc(docRef);
           
           if (docSnap.exists()) {
-
             const data = docSnap.data();
             setCompanyName(data.name || data.companyName || user.companyId.toUpperCase());
           } else {
@@ -67,33 +71,45 @@ export default function AdminDashboard({ user, onLogout }) {
   return (
     <div className="min-h-screen w-full bg-[#F5F5F5] flex font-sans">
       {/* SIDEBAR */}
-      <aside className="h-screen w-72 bg-white border-r border-[#E5E5E5] sticky top-0 hidden md:flex flex-col shrink-0">
-        <div className="p-6 flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#2B1F1F] rounded-xl flex items-center justify-center text-[#C73A36]">
-            <Activity size={20} />
+      <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} h-screen bg-white border-r border-[#E5E5E5] sticky top-0 hidden md:flex flex-col shrink-0 transition-all duration-300 shadow-sm`}>
+        <div className="p-6 flex items-center justify-between">
+          <div className={`flex items-center gap-3 ${!isSidebarOpen && 'hidden'}`}>
+            <div className="w-10 h-10 bg-[#2B1F1F] rounded-xl flex items-center justify-center text-[#C73A36]">
+              <Activity size={20} />
+            </div>
+            <div>
+              <div className="font-bold text-[#1A1A1A] leading-none">EHTS</div>
+              <div className="text-[10px] text-[#5A5A5A] mt-1">Bias Detector</div>
+            </div>
           </div>
-          <div>
-            <div className="font-bold text-[#1A1A1A]">EHTS</div>
-            <div className="text-xs text-[#5A5A5A]">Bias Detector</div>
-          </div>
+          <button 
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+            className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors"
+          >
+            <Menu size={20} />
+          </button>
         </div>
-        <nav className="px-4 flex flex-col gap-1">
+
+        <nav className="px-3 flex flex-col gap-1">
           {[
             { id: 'dashboard', icon: LayoutGrid, label: 'Dashboard' },
             { id: 'employees', icon: Users, label: 'Employees' },
+            // UPDATED: Changed from Therapists to Evaluators
+            { id: 'evaluators', icon: UserSquare, label: 'Evaluators' }, 
             { id: 'tests', icon: FileText, label: 'Tests' },
             { id: 'audios', icon: Headphones, label: 'Audio Library' }
           ].map((item) => (
             <button 
               key={item.id}
               onClick={() => navigateTo(item.id)} 
-              className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl mb-1 cursor-pointer transition-colors text-left font-medium ${
+              className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 text-left font-semibold ${
                 currentView === item.id 
-                  ? 'bg-[#9E2F2B] text-white shadow-sm' 
+                  ? 'bg-[#9E2F2B] text-white shadow-md' 
                   : 'text-[#5A5A5A] hover:bg-gray-50'
               }`}
             >
-              <item.icon size={20} /> {item.label}
+              <item.icon size={22} className="shrink-0" /> 
+              {isSidebarOpen && <span className="text-sm truncate">{item.label}</span>}
             </button>
           ))}
         </nav>
@@ -104,7 +120,6 @@ export default function AdminDashboard({ user, onLogout }) {
         <header className="px-8 py-4 border-b border-[#E5E5E5] bg-white/90 backdrop-blur flex justify-between items-center z-10">
           <div className="text-3xl flex items-center gap-2 font-semibold text-[#1A1A1A]">
             <span className=" w-2 h-2 bg-green-500 rounded-full"></span>
-            {/* UPDATED: Displays Real Company Name */}
             {companyName}
           </div>
           <div className="flex items-center gap-4">
@@ -124,6 +139,10 @@ export default function AdminDashboard({ user, onLogout }) {
         <main className="flex-1 p-8 overflow-y-auto">
           {currentView === 'dashboard' && <AdminHomeStats companyId={user.companyId} />}
           {currentView === 'employees' && <EmployeesPage companyId={user.companyId} onViewDetail={(id) => navigateTo('employee-detail', id)} />}
+          
+          {/* UPDATED: Changed from therapists to evaluators */}
+          {currentView === 'evaluators' && <EvaluatorAdminDash user={user} />}
+          
           {currentView === 'employee-detail' && <EmployeeDetailPage employeeId={detailId} companyId={user.companyId} onBack={() => navigateTo('employees')} />}
           {currentView === 'tests' && <TestsPage companyId={user.companyId} />}
           {currentView === 'audios' && <AudiosPage />}
@@ -398,10 +417,8 @@ function EmployeeDetailPage({ employeeId, companyId, onBack }) {
         stressIndicator: point.stressIndicator === -1 ? null : point.stressIndicator
     }));
 
-    // --- CALCULATION FIX: 17/17 Logic ---
     const validSamples = graphData.filter(pt => pt.time > 65).length;
     const failedSamples = graphData.filter(pt => pt.stress).length;
-    // ------------------------------------
 
     const audioSrc = selectedTest.audioUrl || "";
 
@@ -540,7 +557,7 @@ function EmployeeDetailPage({ employeeId, companyId, onBack }) {
             <h1 className="text-3xl font-bold text-[#1A1A1A]">{employee.fullName}</h1>
             <div className="flex gap-6 mt-3 text-sm text-[#5A5A5A]">
                 <span className="flex items-center gap-2 bg-[#F5F5F5] px-3 py-1 rounded-full"><Mail size={14}/> {employee.email}</span>
-                <span className="flex items-center gap-2 bg-[#F5F5F5] px-3 py-1 rounded-full"><Briefcase size={14}/> {employee.role}</span>
+                <span className="flex items-center gap-2 bg-[#F5F5F5] px-3 py-1 rounded-full uppercase"><Briefcase size={14}/> {employee.role}</span>
             </div>
         </div>
       </div>
@@ -576,7 +593,7 @@ function EmployeeDetailPage({ employeeId, companyId, onBack }) {
 }
 
 // ==========================================
-// TESTS PAGE (UPDATED WITH FIX FOR setTests)
+// TESTS PAGE
 // ==========================================
 function TestsPage({ companyId }) {
     const [allTests, setAllTests] = useState([]);
@@ -647,14 +664,10 @@ function TestsPage({ companyId }) {
         }
     };
 
-    // FIXED: Uses setAllTests correctly
     const handleDelete = async (id) => {
         if(window.confirm("Permanently delete this pending test?")) {
             try { 
                 await deleteDoc(doc(db, 'companies', companyId, 'tests', id));
-                // No need to manually update state, onSnapshot handles it, 
-                // but if we were doing it manually:
-                // setAllTests(prev => prev.filter(t => t.id !== id));
             } catch (e) { alert(e.message); }
         }
     };
@@ -739,7 +752,7 @@ function TestsPage({ companyId }) {
 }
 
 // ==========================================
-// AUDIOS PAGE (UPDATED WITH UPLOAD FORM)
+// AUDIOS PAGE
 // ==========================================
 function AudiosPage() {
   const [scenarios, setScenarios] = useState([]);
@@ -790,7 +803,7 @@ function AudiosPage() {
         <div className="flex justify-between items-center mb-6">
             <div>
                 <h1 className="text-2xl font-bold text-[#1A1A1A]">Audio Scenario Library</h1>
-                <p className="text-[#5A5A5A]">Review and manage audio simulations for testing.</p>
+                <p className="text-[#5A5A5A]">Review and manage audio simulations for bias testing.</p>
             </div>
             <button onClick={() => setShowUploadForm(!showUploadForm)} className="bg-[#9E2F2B] text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-[#8E2522] transition-colors">
                 {showUploadForm ? <X size={20} /> : <Plus size={20} />}
@@ -821,8 +834,7 @@ function AudiosPage() {
                 <div key={item.id || index} className="bg-white p-6 rounded-2xl border border-[#E5E5E5] shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="p-3 bg-[#F9F9F9] rounded-xl text-[#9E2F2B]"><Headphones size={24} /></div>
-          
-                    <h3 className="font-bold text-[#1A1A1A] mb-2">{item.title}</h3>
+                    <h3 className="font-bold text-[#1A1A1A]">{item.title}</h3>
                   </div>
                     <p className="text-sm text-[#5A5A5A] mb-4 h-16 overflow-hidden text-ellipsis">{item.description}</p>
                     {item.audioUrl ? (
@@ -838,3 +850,4 @@ function AudiosPage() {
     </div>
   );
 }
+
