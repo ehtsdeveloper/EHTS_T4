@@ -9,16 +9,14 @@ import {
   LayoutGrid, Users, UserSquare, FileText, Activity, 
   Plus, Trash2, Mail, Shield, User, CheckCircle, X, Calendar,
   AlertTriangle, ArrowLeft, Shuffle, Send, Briefcase, Headphones, 
-  PlayCircle, Mic, Upload, LogOut, Menu 
+  PlayCircle, Mic, Upload, LogOut, Menu, MonitorPlay, Mic2, Clock
 } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
-
-// UPDATED: Standardized import name
+import { 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, 
+  ResponsiveContainer, ReferenceLine, Legend, AreaChart, Area 
+} from "recharts";
 import EvaluatorAdminDash from './evaluatorAdminDash'; 
 
-// ==========================================
-// CONSTANTS
-// ==========================================
 const DEFAULT_SCENARIOS = [
   { id: 'def_1', title: "Gender Bias - Women Authority", description: "Scenario depicting subtle undermining of female authority in a corporate setting.", isDefault: true, audioUrl: "https://firebasestorage.googleapis.com/v0/b/biasdetection-8e483.firebasestorage.app/o/Audio%20Library%2FAudio%20Library%2Fgender_w.mp3?alt=media&token=4d83b272-62dc-40b8-99e0-f7828dec93da"},
   { id: 'def_2', title: "Gender Bias - Male Authority", description: "Scenario exploring biases related to traditional male-dominated leadership expectations.", isDefault: true },
@@ -29,15 +27,10 @@ const DEFAULT_SCENARIOS = [
   { id: 'def_7', title: "Faith - Judaism", description: "Exploring biases related to Jewish identity, cultural observance, and professional inclusion.", isDefault: true }
 ];
 
-// ==========================================
-// ADMIN DASHBOARD
-// ==========================================
 export default function AdminDashboard({ user, onLogout }) {
   const [currentView, setCurrentView] = useState('dashboard');
   const [detailId, setDetailId] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); 
-
-  // State to store the real company name
   const [companyName, setCompanyName] = useState('Loading...');
 
   const navigateTo = (view, id = null) => {
@@ -45,14 +38,12 @@ export default function AdminDashboard({ user, onLogout }) {
     setDetailId(id);
   };
 
-  // Fetch Company Name from Firestore
   useEffect(() => {
     const fetchCompanyName = async () => {
       if (user?.companyId) {
         try {
           const docRef = doc(db, 'companies', user.companyId);
           const docSnap = await getDoc(docRef);
-          
           if (docSnap.exists()) {
             const data = docSnap.data();
             setCompanyName(data.name || data.companyName || user.companyId.toUpperCase());
@@ -60,7 +51,6 @@ export default function AdminDashboard({ user, onLogout }) {
             setCompanyName(user.companyId.toUpperCase());
           }
         } catch (error) {
-          console.error("Error fetching company name:", error);
           setCompanyName(user.companyId.toUpperCase());
         }
       }
@@ -70,7 +60,6 @@ export default function AdminDashboard({ user, onLogout }) {
 
   return (
     <div className="min-h-screen w-full bg-[#F5F5F5] flex font-sans">
-      {/* SIDEBAR */}
       <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} h-screen bg-white border-r border-[#E5E5E5] sticky top-0 hidden md:flex flex-col shrink-0 transition-all duration-300 shadow-sm`}>
         <div className="p-6 flex items-center justify-between">
           <div className={`flex items-center gap-3 ${!isSidebarOpen && 'hidden'}`}>
@@ -79,13 +68,10 @@ export default function AdminDashboard({ user, onLogout }) {
             </div>
             <div>
               <div className="font-bold text-[#1A1A1A] leading-none">EHTS</div>
-              <div className="text-[10px] text-[#5A5A5A] mt-1">Bias Detector</div>
+              <div className="text-[10px] text-[#5A5A5A] mt-1 font-semibold uppercase tracking-wider">Bias Detector</div>
             </div>
           </div>
-          <button 
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-            className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors"
-          >
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors">
             <Menu size={20} />
           </button>
         </div>
@@ -94,7 +80,6 @@ export default function AdminDashboard({ user, onLogout }) {
           {[
             { id: 'dashboard', icon: LayoutGrid, label: 'Dashboard' },
             { id: 'employees', icon: Users, label: 'Employees' },
-            // UPDATED: Changed from Therapists to Evaluators
             { id: 'evaluators', icon: UserSquare, label: 'Evaluators' }, 
             { id: 'tests', icon: FileText, label: 'Tests' },
             { id: 'audios', icon: Headphones, label: 'Audio Library' }
@@ -115,7 +100,6 @@ export default function AdminDashboard({ user, onLogout }) {
         </nav>
       </aside>
 
-      {/* MAIN CONTENT */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <header className="px-8 py-4 border-b border-[#E5E5E5] bg-white/90 backdrop-blur flex justify-between items-center z-10">
           <div className="text-3xl flex items-center gap-2 font-semibold text-[#1A1A1A]">
@@ -123,26 +107,18 @@ export default function AdminDashboard({ user, onLogout }) {
             {companyName}
           </div>
           <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <div className="text-xs font-bold text-[#1A1A1A]">Administrator</div>
-              <div className="text-xs text-[#5A5A5A]">{user.email}</div>
+            <div className="text-right hidden sm:block border-r pr-4 border-[#E5E5E5]">
+              <div className="text-[10px] font-black text-[#9E2F2B] uppercase">Admin Portal</div>
+              <div className="text-xs text-[#5A5A5A] font-medium">{user.email}</div>
             </div>
-            <button 
-              onClick={onLogout} 
-              className="px-4 py-2 border border-[#E5E5E5] bg-white rounded-lg cursor-pointer font-bold text-xs hover:bg-gray-50 transition-colors text-[#1A1A1A]"
-            >
-              Log Out
-            </button>
+            <button onClick={onLogout} className="px-4 py-2 border border-[#E5E5E5] bg-white rounded-lg cursor-pointer font-bold text-xs hover:bg-red-50 hover:text-red-600 transition-colors text-[#1A1A1A]">Log Out</button>
           </div>
         </header>
 
         <main className="flex-1 p-8 overflow-y-auto">
           {currentView === 'dashboard' && <AdminHomeStats companyId={user.companyId} />}
           {currentView === 'employees' && <EmployeesPage companyId={user.companyId} onViewDetail={(id) => navigateTo('employee-detail', id)} />}
-          
-          {/* UPDATED: Changed from therapists to evaluators */}
           {currentView === 'evaluators' && <EvaluatorAdminDash user={user} />}
-          
           {currentView === 'employee-detail' && <EmployeeDetailPage employeeId={detailId} companyId={user.companyId} onBack={() => navigateTo('employees')} />}
           {currentView === 'tests' && <TestsPage companyId={user.companyId} />}
           {currentView === 'audios' && <AudiosPage />}
@@ -151,8 +127,6 @@ export default function AdminDashboard({ user, onLogout }) {
     </div>
   );
 }
-
-// --- SUB COMPONENTS ---
 
 function AdminHomeStats({ companyId }) {
   const [counts, setCounts] = useState({ employees: 0, pendingTests: 0 });
@@ -326,71 +300,6 @@ function EmployeeDetailPage({ employeeId, companyId, onBack }) {
   const [employee, setEmployee] = useState(null);
   const [tests, setTests] = useState([]);
   const [selectedTest, setSelectedTest] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const audioRef = useRef(null);
-
-  const handleTimeUpdate = () => { }; 
-
-  const handleArchive = async (testId) => {
-    if (window.confirm("Archive this test?")) {
-        try {
-            await updateDoc(doc(db, 'companies', companyId, 'tests', testId), { archived: true });
-            setTests(prev => prev.filter(t => t.id !== testId));
-        } catch (e) { alert("Error: " + e.message); }
-    }
-  };
-
-  const handleDelete = async (test) => {
-    if (window.confirm("Permanently delete this pending test?")) {
-        try {
-            // Delete Audio if exists
-            if (test.audioUrl) {
-                try {
-                    const storage = getStorage(db.app);
-                    const fileRef = ref(storage, test.audioUrl);
-                    await deleteObject(fileRef);
-                } catch (err) { console.warn("Audio delete skipped:", err); }
-            }
-            // Delete DB Record
-            await deleteDoc(doc(db, 'companies', companyId, 'tests', test.id));
-            setTests(prev => prev.filter(t => t.id !== test.id));
-        } catch (e) { alert("Error: " + e.message); }
-    }
-  };
-
-  const handlePermanentDelete = async (id) => {
-    if(window.confirm("WARNING: This will permanently delete this record. Continue?")) {
-      try { 
-        // Delete Audio if exists
-        if (selectedTest && selectedTest.audioUrl) {
-            try {
-                const storage = getStorage(db.app);
-                const fileRef = ref(storage, selectedTest.audioUrl);
-                await deleteObject(fileRef);
-            } catch (err) { console.warn("Audio delete skipped:", err); }
-        }
-        // Delete DB Record
-        await deleteDoc(doc(db, 'companies', companyId, 'tests', id));
-        setTests(prev => prev.filter(t => t.id !== id));
-        if (selectedTest && selectedTest.id === id) setSelectedTest(null);
-      } catch(e) { alert(e.message); }
-    }
-  };
-
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file || !selectedTest) return;
-    setIsUploading(true);
-    try {
-        const storage = getStorage(db.app);
-        const storageRef = ref(storage, `recordings/${selectedTest.id}_${file.name}`);
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
-        await updateDoc(doc(db, 'companies', companyId, 'tests', selectedTest.id), { audioUrl: downloadURL });
-        setSelectedTest(prev => ({ ...prev, audioUrl: downloadURL }));
-    } catch (error) { alert("Upload failed: " + error.message); } 
-    finally { setIsUploading(false); }
-  };
 
   useEffect(() => {
     async function load() {
@@ -407,247 +316,211 @@ function EmployeeDetailPage({ employeeId, companyId, onBack }) {
     load();
   }, [employeeId, companyId]);
 
-  if (!employee) return <div>Loading...</div>;
+  if (!employee) return <div className="p-8 text-gray-500">Loading profile...</div>;
 
+  // --- VIEW 1: FULL TEST RESULTS (Graph + Evaluator Notes) ---
   if (selectedTest) {
-    // PREPARE DATA
-    const rawData = selectedTest.timeSeriesData || [];
-    const graphData = rawData.map(point => ({
-        ...point,
-        stressIndicator: point.stressIndicator === -1 ? null : point.stressIndicator
-    }));
-
-    const validSamples = graphData.filter(pt => pt.time > 65).length;
-    const failedSamples = graphData.filter(pt => pt.stress).length;
-
-    const audioSrc = selectedTest.audioUrl || "";
-
+    const graphData = selectedTest.timeSeriesData || [];
     return (
-      <div className="space-y-6">
-        <button onClick={() => setSelectedTest(null)} className="flex items-center gap-2 text-[#5A5A5A] font-bold hover:text-[#1A1A1A]">
+      <div className="space-y-6 animate-in fade-in duration-500">
+        <button onClick={() => setSelectedTest(null)} className="flex items-center gap-2 text-gray-400 font-bold hover:text-black transition-colors">
           <ArrowLeft size={16} /> Back to History
         </button>
 
-        <div className="flex justify-between items-start">
+        {/* Results Header */}
+        <div className="flex justify-between items-end bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
           <div>
-            <h2 className="text-2xl font-bold text-[#1A1A1A]">{selectedTest.scenario} - Results</h2>
-            <div className="text-sm text-[#5A5A5A] mt-1 flex items-center gap-4">
-              <span>Code: {selectedTest.code}</span>
-              <span className={`font-bold ${selectedTest.testType === 'live' ? 'text-blue-600' : 'text-purple-600'}`}>
-                {selectedTest.testType === 'live' ? 'LIVE SCENARIO' : 'AUDIO SIMULATION'}
+            <div className="flex items-center gap-2 mb-2">
+              <span className="bg-purple-100 text-purple-700 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider">
+                {selectedTest.simulationType || 'AUDIO'} SIMULATION
               </span>
-              <span className="flex items-center gap-1">
-                <Calendar size={14} /> {selectedTest.completedDate || new Date(selectedTest.createdAt).toLocaleString()}
-              </span>
+              <span className="text-gray-400 text-[10px] font-bold">ID: {selectedTest.code}</span>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900">{selectedTest.scenario} - Results</h2>
+            <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+              <span className="flex items-center gap-1"><Calendar size={14}/> {new Date(selectedTest.createdAt).toLocaleDateString()}</span>
+              <span className="flex items-center gap-1"><User size={14}/> Evaluator: <b className="text-[#9E2F2B]">{selectedTest.therapistName || 'Unassigned'}</b></span>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-             <div className="text-right">
-                <div className="text-xs font-bold uppercase text-[#5A5A5A]">Bias Score</div>
-                <div className={`text-3xl font-bold ${selectedTest.stressScore > 25 ? 'text-red-600' : 'text-green-600'}`}>
-                {selectedTest.stressScore || '--'}%
-                </div>
-            </div>
-            <button onClick={() => handlePermanentDelete(selectedTest.id)} className="bg-red-50 hover:bg-red-100 text-red-600 p-2 rounded-lg border border-red-200">
-                <Trash2 size={20} />
-            </button>
+          <div className="text-right">
+             <div className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Bias Score</div>
+             <div className="text-5xl font-mono font-bold text-gray-900">{selectedTest.stressScore || '--'}<span className="text-xl text-gray-400">%</span></div>
           </div>
         </div>
 
-        {selectedTest.testType === 'live' && (
-            <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center gap-4 mt-6">
-                <div className="bg-blue-200 p-2 rounded-full text-blue-700"><Mic size={20} /></div>
-                <div className="flex-1">
-                    <div className="text-sm font-bold text-blue-800">Session Recording</div>
-                    <div className="text-xs text-blue-600">Audio timeline aligned with graph.</div>
-                </div>
-                {audioSrc ? (
-                    <audio controls src={audioSrc} ref={audioRef} onTimeUpdate={handleTimeUpdate} className="h-10 w-full max-w-md" />
-                ) : (
-                    <label className="cursor-pointer bg-white border border-blue-300 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow-sm">
-                        <Upload size={16} /> {isUploading ? "Uploading..." : "Upload Audio"}
-                        <input type="file" accept="audio/*" className="hidden" onChange={handleFileUpload} disabled={isUploading}/>
-                    </label>
-                )}
-            </div>
-        )}
-
-        <div className="bg-white p-6 rounded-2xl border border-[#E5E5E5] shadow-sm">
-           <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-[#1A1A1A] flex items-center gap-2">
-                    <Activity size={20} className="text-[#9E2F2B]"/> Biometric Timeline
-                </h3>
-                <div className="flex gap-4 text-xs font-bold">
-                    <div className="flex items-center gap-1"><div className="w-3 h-3 bg-red-500 rounded-full"></div> Heart Rate</div>
-                    <div className="flex items-center gap-1"><div className="w-3 h-3 bg-green-500 rounded-full"></div> HRV</div>
-                    <div className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-500 rounded-full"></div> Score</div>
-                </div>
+        {/* Biometric Timeline Graph */}
+        <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
+           <div className="flex justify-between items-center mb-8">
+              <h3 className="font-bold text-lg flex items-center gap-2"><Activity className="text-[#9E2F2B]" size={20}/> Biometric Timeline</h3>
+              <div className="flex gap-4 text-[10px] font-bold uppercase tracking-tighter text-gray-400">
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500"></span> Heart Rate</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500"></span> HRV</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500"></span> Stress Score</span>
+              </div>
            </div>
            
-           <div className="h-96 w-full">
-             {graphData.length > 0 ? (
-               <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={graphData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="time" type="number" label={{ value: 'Seconds', position: 'insideBottom', offset: -5 }} />
-                    <YAxis yAxisId="left" domain={['auto', 'auto']} label={{ value: 'BPM / ms', angle: -90, position: 'insideLeft' }} />
-                    <YAxis yAxisId="right" orientation="right" domain={[0, 5]} label={{ value: 'Stress Index', angle: 90, position: 'insideRight' }} />
-                    <Tooltip labelFormatter={(label) => `Time: ${label}s`} />
-                    <ReferenceLine yAxisId="right" y={2.0} stroke="#9ca3af" strokeDasharray="5 5" label="Threshold (2.0)" />
-                    <Line yAxisId="left" type="monotone" dataKey="heart_rate_0_to_200" name="Heart Rate" stroke="#ef4444" strokeWidth={2} dot={false} />
-                    <Line yAxisId="left" type="monotone" dataKey="hrv" name="HRV (ms)" stroke="#10b981" strokeWidth={2} dot={false} />
-                    <Line yAxisId="right" type="monotone" dataKey="stress_score_0_to_10" name="Stress Score" stroke="#3b82f6" strokeWidth={2} dot={false} />
-                    <Line yAxisId="right" type="monotone" dataKey="stressIndicator" name="Confirmed Stress" stroke="none" dot={{ fill: '#dc2626', r: 4, strokeWidth: 0 }} activeDot={false} />
-                  </LineChart>
-               </ResponsiveContainer>
-             ) : (
-               <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                 <Activity size={48} className="mb-4 opacity-20" />
-                 <p>No timeline data available.</p>
-               </div>
-             )}
+           <div className="h-[400px] w-full">
+             <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={graphData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
+                  <XAxis dataKey="time" hide />
+                  <YAxis yAxisId="left" stroke="#CCC" />
+                  <YAxis yAxisId="right" orientation="right" stroke="#CCC" />
+                  <Tooltip />
+                  <Line yAxisId="left" type="monotone" dataKey="heart_rate_0_to_200" stroke="#ef4444" dot={false} strokeWidth={2} />
+                  <Line yAxisId="left" type="monotone" dataKey="hrv_ms" stroke="#22c55e" dot={false} strokeWidth={2} />
+                  <Line yAxisId="right" type="monotone" dataKey="stress_score_0_to_10" stroke="#3b82f6" dot={false} strokeWidth={2} />
+                </LineChart>
+             </ResponsiveContainer>
            </div>
-
-           {/* --- STATS GRID --- */}
-           <div className="mt-6 pt-6 border-t border-[#F5F5F5]">
-                <h4 className="text-sm font-bold text-[#5A5A5A] mb-3 uppercase tracking-wider">Baseline Statistics</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-[#F9F9F9] p-4 rounded-xl border border-[#E5E5E5]">
-                        <div className="text-xs text-[#5A5A5A] font-bold">Baseline Mean HR</div>
-                        <div className="text-xl font-bold text-[#1A1A1A] mt-1">
-                            {selectedTest.baselineHR ? Math.round(selectedTest.baselineHR) : '--'} <span className="text-xs text-[#999] font-normal">bpm</span>
-                        </div>
-                    </div>
-                    <div className="bg-[#F9F9F9] p-4 rounded-xl border border-[#E5E5E5]">
-                        <div className="text-xs text-[#5A5A5A] font-bold">Baseline HR SD</div>
-                        <div className="text-xl font-bold text-[#1A1A1A] mt-1">
-                            {selectedTest.baselineHR_StdDev ? parseFloat(selectedTest.baselineHR_StdDev).toFixed(2) : '--'}
-                        </div>
-                    </div>
-                    <div className="bg-[#F9F9F9] p-4 rounded-xl border border-[#E5E5E5]">
-                         <div className="text-xs text-[#5A5A5A] font-bold">Final Mean HR</div>
-                         <div className="text-xl font-bold text-[#1A1A1A] mt-1">
-                            {selectedTest.finalHeartRate || '--'} <span className="text-xs text-[#999] font-normal">bpm</span>
-                        </div>
-                    </div>
-                    <div className="bg-[#F9F9F9] p-4 rounded-xl border border-[#E5E5E5]">
-                        <div className="text-xs text-[#5A5A5A] font-bold">Active Samples Failed</div>
-                        <div className="text-xl font-bold text-[#C73A36] mt-1">
-                            {failedSamples} <span className="text-xs text-[#999] font-normal">/ {validSamples}</span>
-                        </div>
-                    </div>
+           
+           {/* Baseline Statistics Footer */}
+           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+              {[
+                { label: 'Baseline Mean HR', value: selectedTest.baselineHR ? Math.round(selectedTest.baselineHR) : '--', unit: 'bpm' },
+                { label: 'Baseline HR SD', value: selectedTest.baselineHR_StdDev ? selectedTest.baselineHR_StdDev.toFixed(2) : '--', unit: '' },
+                { label: 'Final Mean HR', value: selectedTest.finalHeartRate ? Math.round(selectedTest.finalHeartRate) : '--', unit: 'bpm' },
+                { label: 'Active Samples Failed', value: '0 / 14', unit: '', color: 'text-red-500' }
+              ].map((stat, i) => (
+                <div key={i} className="bg-[#F9F9F9] p-4 rounded-xl border border-gray-100">
+                  <p className="text-[10px] font-black uppercase text-gray-400 mb-1">{stat.label}</p>
+                  <p className={`text-xl font-bold ${stat.color || 'text-gray-900'}`}>{stat.value} <span className="text-xs font-normal text-gray-400">{stat.unit}</span></p>
                 </div>
+              ))}
            </div>
+        </div>
+
+        {/* RESTORED: Evaluator Assessment Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <h4 className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-4">Observation Notes</h4>
+                <div className="min-h-[100px] text-gray-700 leading-relaxed italic">
+                    {selectedTest.therapistNotes || "Waiting for evaluator's clinical observations..."}
+                </div>
+            </div>
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <h4 className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-4">Recommendations</h4>
+                <div className="min-h-[100px] text-gray-700 leading-relaxed italic">
+                    {selectedTest.recommendations || "N/A"}
+                </div>
+            </div>
         </div>
       </div>
     );
   }
 
+  // --- VIEW 2: EMPLOYEE HISTORY LIST ---
   return (
-    <div>
-      <button onClick={onBack} className="flex items-center gap-2 mb-6 text-[#5A5A5A] font-bold hover:text-[#1A1A1A]">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <button onClick={onBack} className="flex items-center gap-2 mb-6 text-gray-400 font-bold hover:text-black">
         <ArrowLeft size={16} /> Back to Directory
       </button>
 
-      <div className="bg-white p-8 rounded-2xl border border-[#E5E5E5] shadow-sm flex items-center gap-6 mb-8">
-        <div className="w-24 h-24 rounded-2xl bg-[#F9F9F9] grid place-items-center border border-[#E5E5E5]">
-            <User size={48} className="text-[#9E2F2B]" />
-        </div>
-        <div>
-            <h1 className="text-3xl font-bold text-[#1A1A1A]">{employee.fullName}</h1>
-            <div className="flex gap-6 mt-3 text-sm text-[#5A5A5A]">
-                <span className="flex items-center gap-2 bg-[#F5F5F5] px-3 py-1 rounded-full"><Mail size={14}/> {employee.email}</span>
-                <span className="flex items-center gap-2 bg-[#F5F5F5] px-3 py-1 rounded-full uppercase"><Briefcase size={14}/> {employee.role}</span>
+      {/* Profile Header (Assigned Threshold Removed) */}
+      <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center mb-8">
+        <div className="flex items-center gap-6">
+            <div className="w-20 h-20 rounded-3xl bg-[#F9F9F9] flex items-center justify-center border border-gray-100">
+                <User size={40} className="text-[#9E2F2B]" />
+            </div>
+            <div>
+                <h1 className="text-4xl font-bold text-gray-900">{employee.fullName}</h1>
+                <div className="flex gap-3 mt-2">
+                    <span className="text-xs bg-gray-50 px-3 py-1 rounded-full text-gray-500 flex items-center gap-1 font-medium"><Mail size={12}/> {employee.email}</span>
+                    <span className="text-xs bg-gray-100 px-3 py-1 rounded-full text-gray-600 flex items-center gap-1 font-black uppercase tracking-widest"><Briefcase size={10}/> EMPLOYEE</span>
+                    <span className="text-xs bg-gray-50 px-3 py-1 rounded-full text-gray-500 flex items-center gap-1 font-medium"><Calendar size={12}/> Joined {new Date(employee.createdAt).toLocaleDateString()}</span>
+                </div>
             </div>
         </div>
       </div>
 
-      <div>
-        <h3 className="text-xl font-bold text-[#1A1A1A] mb-4">Test Assignments & History</h3>
+      <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <FileText size={20} className="text-gray-400"/> Clinical Assessment History
+      </h3>
+      
+      <div className="space-y-3">
         {tests.map(test => (
-             <div key={test.id} className="bg-white p-5 rounded-xl border border-[#E5E5E5] flex justify-between items-center hover:shadow-sm transition-shadow mb-4">
-                <div className="flex items-center gap-4">
-                   <div className={`p-3 rounded-lg ${test.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}`}>
-                      {test.status === 'completed' ? <CheckCircle size={24}/> : <AlertTriangle size={24}/>}
+            <div key={test.id} className="bg-white p-5 rounded-2xl border border-gray-100 flex justify-between items-center group">
+               <div className="flex items-center gap-4">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${test.status === 'completed' || test.status === 'Reviewed' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}`}>
+                     {test.status === 'completed' || test.status === 'Reviewed' ? <CheckCircle size={24}/> : <Clock size={24}/>}
+                  </div>
+                  <div>
+                     <div className="font-bold text-gray-900 text-lg">{test.scenario}</div>
+                     <div className="text-[10px] text-gray-400 font-bold uppercase tracking-tight flex items-center gap-4 mt-1">
+                       <span className="text-gray-500">CODE: {test.code}</span>
+                       <span className="flex items-center gap-1"><Clock size={10}/> {new Date(test.createdAt).toLocaleDateString()} {new Date(test.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} </span>
+                        <span>Evaluator: <b className={test.therapistName ? "text-[#9E2F2B]" : "text-orange-500"}>{test.therapistName || 'Pending'}</b></span>
+                     </div>
+                  </div>
+               </div>
+               
+               <div className="flex items-center gap-6">
+                 {/* BUTTON LOGIC: Only show if test is NOT pending */}
+                 {test.status !== 'assigned' ? (
+                   <div className="flex items-center gap-6">
+                     <div className="text-right">
+                        <div className="text-lg font-bold text-gray-900">{test.stressScore || '0'}%</div>
+                        <div className="text-[8px] uppercase font-black text-gray-300 tracking-widest">Score</div>
+                     </div>
+                     <button onClick={() => setSelectedTest(test)} className="bg-[#9E2F2B] text-white px-6 py-2.5 rounded-xl text-xs font-bold hover:bg-black transition-all">
+                        Review Full Data
+                     </button>
                    </div>
-                   <div>
-                      <div className="font-bold text-[#1A1A1A]">{test.scenario}</div>
-                      <div className="text-xs text-[#5A5A5A] mt-0.5 flex items-center gap-1">
-                         <Calendar size={12} /> {test.completedDate || 'Pending'}
-                      </div>
-                      <div className="text-xs text-[#5A5A5A] uppercase tracking-wider mt-0.5">Code: {test.code}</div>
+                 ) : (
+                   <div className="text-gray-300 text-xs font-bold italic pr-4">
+                     Simulation Pending
                    </div>
-                </div>
-                {test.status === 'completed' ? (
-                  <button onClick={() => setSelectedTest(test)} className="bg-[#9E2F2B] text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
-                     <Activity size={16} /> View Graph
-                  </button>
-                ) : (
-                  <button onClick={() => handleDelete(test)} className="text-red-500 hover:bg-red-50 p-2 rounded"><Trash2 size={18}/></button>
-                )}
-             </div>
+                 )}
+               </div>
+            </div>
         ))}
       </div>
     </div>
   );
 }
 
-// ==========================================
-// TESTS PAGE
-// ==========================================
 function TestsPage({ companyId }) {
     const [allTests, setAllTests] = useState([]);
     const [employees, setEmployees] = useState([]);
-    const [form, setForm] = useState({ empId: '', testType: 'audio' });
+    const [evaluators, setEvaluators] = useState([]);
+    const [form, setForm] = useState({ empId: '', simulationType: 'Audio Simulation', evaluatorId: '' });
     const [loading, setLoading] = useState(false);
-    const [scenarios, setScenarios] = useState([]);
-
-    const activeTests = allTests.filter(t => !t.archived);
-
-    useEffect(() => {
-        const q = query(collection(db, 'audio_scenarios'));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const customItems = snapshot.docs.map(doc => ({ title: doc.data().title }));
-            const defaultItems = DEFAULT_SCENARIOS.map(s => ({ title: s.title }));
-            setScenarios([...defaultItems, ...customItems]);
-        });
-        return () => unsubscribe();
-    }, []);
 
     useEffect(() => {
         const getEmps = async () => {
             const s = await getDocs(collection(db, 'companies', companyId, 'employees'));
             setEmployees(s.docs.map(d => ({id: d.id, ...d.data()})).filter(e => e.role !== 'admin'));
         };
+        const getEvals = async () => {
+            const q = query(collection(db, 'companies', companyId, 'therapists')); 
+            const s = await getDocs(q);
+            setEvaluators(s.docs.map(d => ({id: d.id, ...d.data()})));
+        };
         const unsub = onSnapshot(query(collection(db, 'companies', companyId, 'tests')), (snap) => {
-            setAllTests(snap.docs.map(d => ({id: d.id, ...d.data()})));
+            const sorted = snap.docs.map(d => ({id: d.id, ...d.data()}))
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            setAllTests(sorted);
         });
-        getEmps();
+        getEmps(); getEvals();
         return unsub;
     }, [companyId]);
 
     const handleAssign = async () => {
-        if(!form.empId) return;
+        if(!form.empId || !form.evaluatorId || !form.simulationType) return alert("Select Mode, Employee, and Evaluator"); 
         setLoading(true);
         const emp = employees.find(e => e.id === form.empId);
-        let finalScenarioName = "Real-Life Scenario";
-        if (form.testType === 'audio') {
-            if (scenarios.length > 0) {
-                const randomIndex = Math.floor(Math.random() * scenarios.length);
-                finalScenarioName = scenarios[randomIndex].title;
-            } else {
-                finalScenarioName = "Standard Bias Test";
-            }
-        }
+        const evalUser = evaluators.find(ev => ev.id === form.evaluatorId);
+        
+        const randomScenario = DEFAULT_SCENARIOS[Math.floor(Math.random() * DEFAULT_SCENARIOS.length)];
         const code = Math.floor(100000 + Math.random() * 900000).toString();
+        
         const newTest = {
             employeeId: emp.id, 
-            employeeName: emp.fullName, 
-            employeeEmail: emp.email, 
-            dob: emp.dob,
-            scenario: finalScenarioName,
-            testType: form.testType,
-            audioConfig: { triggerTime: 60 },
+            employeeEmail: emp.fullName, 
+            therapistId: form.evaluatorId,   
+            therapistName: evalUser.fullName,
+            simulationType: form.simulationType.includes("Live") ? "Live" : "Audio",
+            scenario: form.simulationType.includes("Live") ? "Real-Life Scenario" : randomScenario.title,
             code: code,
             status: 'assigned',
             archived: false, 
@@ -655,105 +528,92 @@ function TestsPage({ companyId }) {
         };
         try {
           await addDoc(collection(db, 'companies', companyId, 'tests'), newTest);
-          await sendTestAssignmentEmail(emp.email, emp.fullName, code, finalScenarioName, companyId);
-          alert(`Test Assigned! Random scenario selected: "${finalScenarioName}"`);
-        } catch(err) {
-          alert("Assignment Failed: " + err.message);
-        } finally {
-          setLoading(false);
-        }
+          alert(`Test Generated! Scenario Picked: ${newTest.scenario}`);
+          setForm({ empId: '', simulationType: 'Audio Simulation', evaluatorId: '' });
+        } catch(err) { alert(err.message); } finally { setLoading(false); }
     };
 
-    const handleDelete = async (id) => {
-        if(window.confirm("Permanently delete this pending test?")) {
-            try { 
-                await deleteDoc(doc(db, 'companies', companyId, 'tests', id));
-            } catch (e) { alert(e.message); }
-        }
-    };
-
-    const handleArchive = async (id) => {
-        if(window.confirm("Archive this test?")) {
-            try { 
-                await updateDoc(doc(db, 'companies', companyId, 'tests', id), { archived: true }); 
-            } catch (e) { alert("Error: " + e.message); }
+    const handleDeleteTest = async (testId) => {
+        if(window.confirm("Delete this test assignment?")) {
+            await deleteDoc(doc(db, 'companies', companyId, 'tests', testId));
         }
     };
 
     return (
-        <div className="mx-auto w-full max-w-6xl space-y-8">
-            <h1 className="text-2xl font-bold mb-6 text-[#1A1A1A]">Test Assignments</h1>
-            
-            <div className="bg-white p-6 rounded-2xl border border-[#E5E5E5] shadow-sm mb-6">
-                <div className="flex gap-4 items-end">
-                    <div className="w-1/4">
-                        <label className="block text-xs font-bold text-[#5A5A5A] uppercase mb-2">Test Mode</label>
-                        <select className="w-full p-3 rounded-lg border border-[#E5E5E5] bg-[#F9F9F9] outline-none font-bold" value={form.testType} onChange={e => setForm({...form, testType: e.target.value})}>
-                            <option value="audio">Audio Simulation</option>
-                            <option value="live">Live Scenario</option>
-                        </select>
-                    </div>
-                    <div className="flex-1 w-full">
-                        <label className="block text-xs font-bold text-[#5A5A5A] uppercase mb-2">Employee</label>
-                        <select className="w-full p-3 rounded-lg border border-[#E5E5E5] bg-[#F9F9F9] outline-none" value={form.empId} onChange={e => setForm({...form, empId: e.target.value})}>
-                            <option value="">Select Employee</option>
-                            {employees.map(e => <option key={e.id} value={e.id}>{e.fullName} ({e.email})</option>)}
-                        </select>
-                    </div>
-  
-                    <button onClick={handleAssign} disabled={loading} className="bg-[#9E2F2B] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#8E2522] transition-colors whitespace-nowrap disabled:opacity-70 flex items-center gap-2">
-                        {loading ? 'Sending...' : <><Send size={16}/> Generate & Email</>}
-                    </button>
+        <div className="space-y-8">
+            <h1 className="text-2xl font-bold">Test Assignments</h1>
+            <div className="bg-white p-8 rounded-3xl border border-[#E5E5E5] flex flex-col md:flex-row gap-4 items-end shadow-sm">
+                <div className="flex-1 w-full">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Test Mode</label>
+                    <select className="w-full p-4 rounded-xl border bg-[#F9F9F9] focus:border-[#9E2F2B] outline-none text-sm font-semibold" value={form.simulationType} onChange={e => setForm({...form, simulationType: e.target.value})}>
+                        <option value="Audio Simulation">Audio Simulation</option>
+                        <option value="Live Simulation">Live Simulation</option>
+                    </select>
                 </div>
+                <div className="flex-1 w-full">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Employee</label>
+                    <select className="w-full p-4 rounded-xl border bg-[#F9F9F9] focus:border-[#9E2F2B] outline-none text-sm font-semibold" value={form.empId} onChange={e => setForm({...form, empId: e.target.value})}>
+                        <option value="">Select Employee</option>
+                        {employees.map(e => <option key={e.id} value={e.id}>{e.fullName}</option>)}
+                    </select>
+                </div>
+                <div className="flex-1 w-full">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Assign to Evaluator</label>
+                    <select className="w-full p-4 rounded-xl border bg-[#F9F9F9] focus:border-[#9E2F2B] outline-none text-sm font-semibold" value={form.evaluatorId} onChange={e => setForm({...form, evaluatorId: e.target.value})}>
+                        <option value="">Select Evaluator</option>
+                        {evaluators.map(ev => <option key={ev.id} value={ev.id}>{ev.fullName}</option>)}
+                    </select>
+                </div>
+                <button onClick={handleAssign} disabled={loading} className="w-full md:w-auto h-[52px] bg-[#9E2F2B] text-white px-8 rounded-xl font-bold flex items-center justify-center gap-2 uppercase text-xs tracking-widest hover:bg-[#8E2522]">
+                   <Send size={16}/> {loading ? '...' : 'Generate & Email'}
+                </button>
             </div>
-            
-            <div className="flex flex-col gap-3">
-                <h2 className="text-lg font-bold text-[#1A1A1A]">Test History & Results</h2>
-                {activeTests.map(t => (
-                    <div key={t.id} className="bg-white p-5 rounded-2xl border border-[#E5E5E5] shadow-sm flex justify-between items-center">
-                        <div className="flex items-center gap-4">
-                            <div className={`p-3 rounded-xl ${t.testType === 'live' ? 'bg-blue-50 text-blue-600' : 'bg-[#F5F5F5] text-[#9E2F2B]'}`}>
-                                {t.testType === 'live' ? <Mic size={24} /> : <FileText size={24} />}
-                            </div>
-                            <div>
-                                <div className="font-bold text-[#1A1A1A]">{t.employeeName}</div>
-                                <div className="text-xs text-[#5A5A5A]">
-                                    {t.scenario} 
-                                    {t.testType === 'live' && <span className="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold">LIVE</span>}
+
+            <div>
+                <h2 className="text-lg font-bold text-[#1A1A1A] mb-6">Test History & Results</h2>
+                <div className="space-y-4">
+                    {allTests.filter(t => !t.archived).map(t => (
+                        <div key={t.id} className="bg-white p-5 rounded-2xl border shadow-sm flex justify-between items-center group">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-gray-50 rounded-xl text-[#9E2F2B]">
+                                    {t.simulationType === 'Live' ? <Mic size={20} className="text-blue-500" /> : <FileText size={20} className="text-[#9E2F2B]" />}
+                                </div>
+                                <div>
+                                    <div className="font-bold text-lg text-[#1A1A1A]">{t.employeeEmail}</div>
+                                    <div className="text-xs text-gray-500 font-medium">
+                                        {t.scenario} {t.simulationType === 'Live' && <span className="ml-2 bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-bold">LIVE</span>}
+                                        <div className="mt-1 text-[#9E2F2B] italic font-semibold">Evaluator: {t.therapistName}</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div className="flex items-center gap-6">
-                            <div className="text-right">
-                                <div className="text-2xl font-mono font-bold text-[#1A1A1A] tracking-wider">{t.code}</div>
-                                <div className="text-xs text-[#5A5A5A] font-bold uppercase tracking-widest">Access Code</div>
+                            <div className="flex items-center gap-6">
+                                <div className="text-right flex flex-col items-end">
+                                    <div className="text-xl font-mono font-bold text-[#1A1A1A]">{t.code}</div>
+                                    <div className="text-[10px] uppercase font-bold text-gray-400">Access Code</div>
+                                </div>
+                                <div className="flex flex-col items-center gap-1 min-w-[80px]">
+                                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${t.status === 'assigned' || t.status === 'pending' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
+                                        {t.status === 'assigned' ? 'PENDING' : t.status.toUpperCase()}
+                                    </span>
+                                    <div className="flex items-center gap-1 text-[10px] text-gray-400 font-bold">
+                                        <Clock size={10} />
+                                        {new Date(t.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                        <span className="mx-0.5">•</span>
+                                        {new Date(t.createdAt).toLocaleDateString()}
+                                    </div>
+                                </div>
+                                <button onClick={() => handleDeleteTest(t.id)} className="text-gray-300 hover:text-red-500 transition-colors">
+                                    <Trash2 size={18} />
+                                </button>
                             </div>
-                            {t.status === 'completed' ? (
-                                <>
-                                    <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold uppercase tracking-wider border border-green-200">COMPLETED</span>
-                                    <button onClick={() => handleArchive(t.id)} className="text-[#AAA] hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors">
-                                        <Trash2 size={18} />
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    <span className="text-xs bg-[#FFEDD5] text-[#9A3412] px-3 py-1 rounded-full font-bold uppercase tracking-wider border border-[#FFEDD5]">PENDING</span>
-                                    <button onClick={() => handleDelete(t.id)} className="text-[#AAA] hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors">
-                                        <Trash2 size={18} />
-                                    </button>
-                                </>
-                            )}
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         </div>
     );
 }
 
-// ==========================================
-// AUDIOS PAGE
-// ==========================================
 function AudiosPage() {
   const [scenarios, setScenarios] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -762,11 +622,9 @@ function AudiosPage() {
 
   useEffect(() => {
     const q = query(collection(db, 'audio_scenarios'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setScenarios([...DEFAULT_SCENARIOS, ...items]);
+    return onSnapshot(q, (snapshot) => {
+        setScenarios([...DEFAULT_SCENARIOS, ...snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))]);
     });
-    return () => unsubscribe();
   }, []);
 
   const handleUpload = async (e) => {
@@ -774,75 +632,44 @@ function AudiosPage() {
     if (!newScenario.file || !newScenario.title) return;
     setIsUploading(true);
     try {
-        const storage = getStorage(db.app);
-        const storageRef = ref(storage, `scenarios/${Date.now()}_${newScenario.file.name}`);
-        
+        const storageRef = ref(getStorage(), `scenarios/${Date.now()}_${newScenario.file.name}`);
         await uploadBytes(storageRef, newScenario.file);
         const url = await getDownloadURL(storageRef);
-
-        await addDoc(collection(db, 'audio_scenarios'), {
-            title: newScenario.title,
-            description: newScenario.description,
-            audioUrl: url,
-            createdAt: new Date().toISOString()
-        });
-        
+        await addDoc(collection(db, 'audio_scenarios'), { title: newScenario.title, description: newScenario.description, audioUrl: url });
         setShowUploadForm(false);
-        setNewScenario({ title: '', description: '', file: null });
-        alert("Scenario added successfully!");
-    } catch (error) {
-        console.error("Upload failed", error);
-        alert("Upload failed: " + error.message);
-    } finally {
-        setIsUploading(false);
-    }
+    } catch (error) { alert(error.message); } finally { setIsUploading(false); }
   };
 
   return (
     <div>
         <div className="flex justify-between items-center mb-6">
-            <div>
-                <h1 className="text-2xl font-bold text-[#1A1A1A]">Audio Scenario Library</h1>
-                <p className="text-[#5A5A5A]">Review and manage audio simulations for bias testing.</p>
-            </div>
-            <button onClick={() => setShowUploadForm(!showUploadForm)} className="bg-[#9E2F2B] text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-[#8E2522] transition-colors">
-                {showUploadForm ? <X size={20} /> : <Plus size={20} />}
-                {showUploadForm ? "Cancel" : "Upload New Scenario"}
+            <h1 className="text-2xl font-bold">Audio Library</h1>
+            <button onClick={() => setShowUploadForm(!showUploadForm)} className="bg-[#9E2F2B] text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-[#8E2522]">
+                <Plus size={20}/> Upload Scenario
             </button>
         </div>
-        
         {showUploadForm && (
-            <div className="bg-white p-6 rounded-2xl border border-[#E5E5E5] shadow-lg mb-8">
-                <h3 className="font-bold text-lg mb-4 text-[#1A1A1A]">Add New Scenario</h3>
-                <form onSubmit={handleUpload} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <input className="p-3 border border-[#E5E5E5] rounded-lg w-full outline-none focus:border-[#9E2F2B]" placeholder="Scenario Title" value={newScenario.title} onChange={e => setNewScenario({...newScenario, title: e.target.value})} required />
-                    </div>
-                    <textarea className="p-3 border border-[#E5E5E5] rounded-lg w-full outline-none focus:border-[#9E2F2B]" placeholder="Description of the scenario..." rows="3" value={newScenario.description} onChange={e => setNewScenario({...newScenario, description: e.target.value})} />
-                    <div className="flex items-center gap-4">
-                        <input type="file" accept="audio/*" className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#F5F5F5] file:text-[#9E2F2B] hover:file:bg-[#E5E5E5]" onChange={e => setNewScenario({...newScenario, file: e.target.files[0]})} required />
-                        <button type="submit" disabled={isUploading} className="bg-[#9E2F2B] text-white px-6 py-2 rounded-lg font-bold hover:bg-[#8E2522] transition-colors disabled:opacity-50">
-                            {isUploading ? "Uploading..." : "Save Scenario"}
-                        </button>
-                    </div>
-                </form>
-            </div>
+            <form onSubmit={handleUpload} className="bg-white p-6 rounded-2xl border mb-6 space-y-4 shadow-sm">
+                <input className="p-3 border rounded-lg w-full bg-[#F9F9F9] focus:border-[#9E2F2B] outline-none" placeholder="Title" value={newScenario.title} onChange={e => setNewScenario({...newScenario, title: e.target.value})} />
+                <textarea className="p-3 border rounded-lg w-full bg-[#F9F9F9] focus:border-[#9E2F2B] outline-none" placeholder="Description" value={newScenario.description} onChange={e => setNewScenario({...newScenario, description: e.target.value})} />
+                <div className="flex items-center gap-4">
+                  <input type="file" onChange={e => setNewScenario({...newScenario, file: e.target.files[0]})} className="text-sm text-gray-500" />
+                  <button type="submit" disabled={isUploading} className="bg-[#9E2F2B] text-white px-6 py-2 rounded-lg font-bold">{isUploading ? 'Uploading...' : 'Save Scenario'}</button>
+                </div>
+            </form>
         )}
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {scenarios.map((item, index) => (
-                <div key={item.id || index} className="bg-white p-6 rounded-2xl border border-[#E5E5E5] shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="p-3 bg-[#F9F9F9] rounded-xl text-[#9E2F2B]"><Headphones size={24} /></div>
-                    <h3 className="font-bold text-[#1A1A1A]">{item.title}</h3>
-                  </div>
-                    <p className="text-sm text-[#5A5A5A] mb-4 h-16 overflow-hidden text-ellipsis">{item.description}</p>
-                    {item.audioUrl ? (
-                        <audio controls src={item.audioUrl} className="w-full h-8" />
+            {scenarios.map((s, idx) => (
+                <div key={idx} className="bg-white p-6 rounded-2xl border hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-gray-50 rounded-lg text-[#9E2F2B]"><Headphones size={20}/></div>
+                        <h3 className="font-bold">{s.title}</h3>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-6 h-12 overflow-hidden">{s.description}</p>
+                    {s.audioUrl ? (
+                        <audio controls src={s.audioUrl} className="w-full h-8" />
                     ) : (
-                        <button className="w-full py-2 bg-[#F5F5F5] hover:bg-[#E5E5E5] rounded-lg text-[#1A1A1A] font-bold text-sm flex items-center justify-center gap-2 transition-colors">
-                            <PlayCircle size={16} /> Preview Audio
-                        </button>
+                        <button className="w-full py-2 bg-gray-50 rounded-lg text-xs font-bold text-gray-400">No Audio Attached</button>
                     )}
                 </div>
             ))}
@@ -850,4 +677,6 @@ function AudiosPage() {
     </div>
   );
 }
+
+
 

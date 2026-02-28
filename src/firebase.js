@@ -1,9 +1,10 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getStorage } from "firebase/storage";
 
-// Export this so adminDash.js can use it for the secondary app
-export const firebaseConfig = {
+// REMOVED 'export' from here to prevent duplicate export error
+const firebaseConfig = {
   apiKey: "AIzaSyALGHSJlamvkhVwDVLhYQVcrBLZaOd6XqI",
   authDomain: "biasdetection-8e483.firebaseapp.com",
   databaseURL: "https://biasdetection-8e483-default-rtdb.firebaseio.com",
@@ -17,3 +18,9 @@ export const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app); 
+
+// This exports it once and correctly for EvaluatorAdminDash.js
+export { firebaseConfig };
+
+
